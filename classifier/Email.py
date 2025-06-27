@@ -17,26 +17,24 @@ class Email:
     def parse(self):
         message = message_from_bytes(self._email)
         headers = dict(message.items())
+        body = markdown = simple_markdown = ""
         if message.is_multipart():
             for part in message.walk():
                 content_type = part.get_content_type()
                 content_disposition = str(part.get('Content-Disposition'))
 
-                if content_type != "text/html" or "attachment" in content_disposition:
+                if content_type not in ["text/plain", "text/html"] or "attachment" in content_disposition:
                     continue
 
-                try:
-                    body = part.get_payload(decode=True).decode()
-                    break
-                except:
-                    pass
+                body = part.get_payload(decode=True).decode()
         else:
             body = message.get_payload(decode=True).decode()
 
-        markdown = html2text(body, bodywidth=0)
-        simple_markdown = markdown.replace("\r", "")
-        simple_markdown = re.sub("\n\n+", "\n", simple_markdown)
-        simple_markdown = simple_markdown[:500]
+        if body:
+            markdown = html2text(body, bodywidth=0)
+            simple_markdown = markdown.replace("\r", "")
+            simple_markdown = re.sub("\n\n+", "\n", simple_markdown)
+            simple_markdown = simple_markdown[:500].strip()
 
         structure = {
             'headers': headers,
