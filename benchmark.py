@@ -15,13 +15,14 @@ def process_emails(directory):
                 email_structure = Email(file.read()).parse()
                 classifier = Classifier(email_structure)
                 classification = classifier.classify()
-                response = classifier.response
-                print(
-                    f'"{email_structure["subject"]}": '
-                    f"{classification} "
-                    f"(prompt: {timedelta(seconds=math.ceil(response["prompt_eval_duration"] / (10 ** 9)))}, "
-                    f"total: {timedelta(seconds=math.ceil(response["total_duration"] / (10 ** 9)))} sec)"
-                )
+                if classification is not None:
+                    response = classifier.response
+                    print(
+                        f'"{email_structure["subject"]}": '
+                        f"{classification} "
+                        f"(prompt: {timedelta(seconds=math.ceil(response["prompt_eval_duration"] / (10 ** 9)))}, "
+                        f"total: {timedelta(seconds=math.ceil(response["total_duration"] / (10 ** 9)))} sec)"
+                    )
 
 
 def main():
