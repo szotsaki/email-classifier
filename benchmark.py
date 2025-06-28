@@ -5,6 +5,7 @@ from datetime import timedelta
 
 from classifier.Classifier import Classifier
 from classifier.Email import Email
+from classifier.Model import Model
 
 
 def process_emails(directory):
@@ -14,7 +15,7 @@ def process_emails(directory):
             with open(filepath, 'rb') as file:
                 email_structure = Email(file.read()).parse()
                 classifier = Classifier(email_structure)
-                classification = classifier.classify()
+                classification = classifier.classify(Model("mistral:7b"))
                 if classification is not None:
                     response = classifier.response
                     print(
