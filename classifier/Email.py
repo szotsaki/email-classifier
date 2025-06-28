@@ -26,9 +26,11 @@ class Email:
                 if content_type not in ["text/plain", "text/html"] or "attachment" in content_disposition:
                     continue
 
-                body = part.get_payload(decode=True).decode()
+                charset = part.get_param('charset', 'ASCII')
+                body = part.get_payload(decode=True).decode(charset)
         else:
-            body = message.get_payload(decode=True).decode()
+            charset = message.get_param('charset', 'ASCII')
+            body = message.get_payload(decode=True).decode(charset)
 
         if body:
             markdown = html2text(body, bodywidth=0)
