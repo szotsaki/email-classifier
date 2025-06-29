@@ -6,9 +6,14 @@ from .Model import Model
 
 
 class Classifier:
-    def __init__(self, email_structure):
+    def __init__(self, email_structure, categories: list | None = None):
         self._email_structure = email_structure
         self._response = None
+
+        if categories is not None:
+            self._categories = categories
+        else:
+            self._categories = ["primary", "promotion", "social", "notification"]
 
     def classify(self, model: Model):
         return self._run_llm(model)
@@ -27,11 +32,12 @@ class Classifier:
             return None
 
         try:
+            categories = "'" + "', '".join(self._categories) + "'"
             self._response: ollama.ChatResponse = ollama.chat(model=model.model, think=False, messages=[
                 {
                     "role": "user",
-                    "content": f"Classify the following e-mail given in markdown format into one of the following four categories: "
-                               "'primary', 'promotion', 'social', 'notification'. If unsure, output the string 'unsure' verbatim.\n"
+                    "content": f"Classify the following e-mail, given in markdown format, into one of the following categories: "
+                               f"{categories}. If unsure, output the string 'unsure' verbatim.\n"
                                "Do not reason and omit the thinking process in the response.\n"
                                "The response must contain only one word: one of the listed categories or 'unsure'."
                                f"Email content:\n{self._email_structure["subject"]}\n{self._email_structure["simple_markdown"]}",
