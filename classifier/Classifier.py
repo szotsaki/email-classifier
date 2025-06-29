@@ -27,12 +27,13 @@ class Classifier:
             return None
 
         try:
-            self._response: ollama.ChatResponse = ollama.chat(model=model.model, messages=[
+            self._response: ollama.ChatResponse = ollama.chat(model=model.model, think=False, messages=[
                 {
                     "role": "user",
                     "content": f"Classify the following e-mail given in markdown format into one of the following four categories: "
-                               "'primary', 'promotion', 'social', 'notification'. If unsure, output the string 'unsure' verbatim. "
-                               "The response must contain only one word: one of the listed categories or 'unsure'.\n"
+                               "'primary', 'promotion', 'social', 'notification'. If unsure, output the string 'unsure' verbatim.\n"
+                               "Do not reason and omit the thinking process in the response.\n"
+                               "The response must contain only one word: one of the listed categories or 'unsure'."
                                f"Email content:\n{self._email_structure["subject"]}\n{self._email_structure["simple_markdown"]}",
                 },
             ])
