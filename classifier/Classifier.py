@@ -3,11 +3,12 @@ import sys
 
 import ollama
 
+from .Email import EmailStructure
 from .Model import Model
 
 
 class Classifier:
-    def __init__(self, email_structure, categories: list | None = None):
+    def __init__(self, email_structure: EmailStructure, categories: list | None = None):
         self._email_structure = email_structure
         self._response = None
 
@@ -16,14 +17,14 @@ class Classifier:
         else:
             self._categories = ["primary", "promotion", "social", "notification"]
 
-    def classify(self, model: Model):
+    def classify(self, model: Model) -> str | None:
         return self._run_llm(model)
 
     @property
-    def response(self):
+    def response(self) -> ollama.ChatResponse | None:
         return self._response
 
-    def _run_llm(self, model: Model):
+    def _run_llm(self, model: Model) -> str | None:
         if not self._email_structure["simple_markdown"]:
             print("The provided e-mail is empty, the classifier cannot run on it", file=sys.stderr)
             return None

@@ -19,11 +19,11 @@ class Benchmark:
             print(f"Directory '{args.directory}' does not exist.")
             exit(1)
 
-    def run(self):
+    def run(self) -> None:
         self._pull_foreign_models()
         self._process_emails()
 
-    def _pull_foreign_models(self):
+    def _pull_foreign_models(self) -> None:
         for model in self._args.models:
             model = Model(model)
             if not model.is_available():
@@ -31,7 +31,7 @@ class Benchmark:
                     print("Could not retrieve all the requested models. Benchmark is now exiting.", file=sys.stderr)
                     exit(1)
 
-    def _process_emails(self):
+    def _process_emails(self) -> None:
         print(f"{"Subject":{self._subj_len + 1}s}", end="")
         for model in self._args.models:
             print(f"{model:21s}", end="")

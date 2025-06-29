@@ -1,20 +1,29 @@
 import re
 from email import message_from_bytes
 from email.header import decode_header
+from typing import TypedDict
 
 from html2text import html2text
 
 
+class EmailStructure(TypedDict):
+    headers: dict | None
+    subject: str | None
+    body: str | None
+    markdown: str | None
+    simple_markdown: str | None
+
+
 class Email:
-    def __init__(self, email):
+    def __init__(self, email: bytes):
         self._email = email
         self._structure = None
 
     @property
-    def structure(self):
+    def structure(self) -> EmailStructure | None:
         return self._structure
 
-    def parse(self):
+    def parse(self) -> EmailStructure:
         message = message_from_bytes(self._email)
         headers = dict(message.items())
         body = markdown = simple_markdown = ""
@@ -38,7 +47,7 @@ class Email:
             simple_markdown = re.sub("\n\n+", "\n", simple_markdown)
             simple_markdown = simple_markdown[:500].strip()
 
-        structure = {
+        structure: EmailStructure = {
             'headers': headers,
             'subject': self._get_subject(headers["Subject"]),
             'body': body,
@@ -51,7 +60,7 @@ class Email:
         return structure
 
     @staticmethod
-    def _get_subject(header):
+    def _get_subject(header: str) -> str:
         subject = ""
         for part in decode_header(header):
             if type(part[0]) is str:
