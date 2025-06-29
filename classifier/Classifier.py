@@ -1,3 +1,4 @@
+import re
 import sys
 
 import ollama
@@ -44,9 +45,21 @@ class Classifier:
                 },
             ])
 
-            classification = self._response["message"]["content"].strip().replace("'", "")
+            classification = self._response["message"]["content"].strip()
 
-            return classification
+            # Sometimes the answer is long or thinking is there (even though it's disabled).
+            if "\n" in classification:
+                classification = classification.splitlines()[-1]
+
+            categories = "|".join(self._categories)
+            # This catches the last of the mentions
+            classification = re.sub(rf".*({categories}|unsure).*", r"\1", classification)
+
+            if classification in self._categories + ['unsure']:
+                return classification
+
+            return "unknown"
+
         except ollama.ResponseError as e:
             print(f"Could not run Ollama model: {e.error}", file=sys.stderr)
             return None
