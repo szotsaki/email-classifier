@@ -1,9 +1,11 @@
 import re
+import unicodedata
 from email import message_from_bytes
 from email.header import decode_header
 from typing import TypedDict
 
-from html2text import html2text
+import html2text
+from bs4 import BeautifulSoup
 
 
 class EmailStructure(TypedDict):
@@ -11,13 +13,21 @@ class EmailStructure(TypedDict):
     subject: str | None
     body: str | None
     markdown: str | None
-    simple_markdown: str | None
 
 
 class Email:
     def __init__(self, email: bytes):
         self._email = email
         self._structure = None
+
+        h2t = html2text.HTML2Text()
+        h2t.body_width = 0
+        h2t.ignore_images = True
+        h2t.ignore_links = True
+        h2t.inline_links = False
+        h2t.ignore_tables = True
+
+        self._html2text = h2t.handle
 
     @property
     def structure(self) -> EmailStructure | None:
@@ -26,7 +36,7 @@ class Email:
     def parse(self) -> EmailStructure:
         message = message_from_bytes(self._email)
         headers = dict(message.items())
-        body = markdown = simple_markdown = ""
+        body = markdown = ""
         if message.is_multipart():
             for part in message.walk():
                 content_type = part.get_content_type()
@@ -42,17 +52,21 @@ class Email:
             body = message.get_payload(decode=True).decode(charset)
 
         if body:
-            markdown = html2text(body, bodywidth=0)
-            simple_markdown = markdown.replace("\r", "")
-            simple_markdown = re.sub("\n\n+", "\n", simple_markdown)
-            simple_markdown = simple_markdown[:500].strip()
+            # Fix broken HTML and remove superfluous Unicode characters
+            html = str(BeautifulSoup(body, 'html5lib'))
+            # Remove Unicode control and mark characters - https://www.unicode.org/reports/tr44/#General_Category_Values
+            html = ''.join(c for c in html if not (unicodedata.category(c)[0] in ['C', 'M']) or c == "\n")
+            html = re.sub(r"\s+", " ", html)  # \s catches Unicode whitespaces
+
+            markdown = self._html2text(html)
+            markdown = re.sub(r"(\s*\n)+", r"\n", markdown)
+            markdown = markdown[:500].strip()
 
         structure: EmailStructure = {
             'headers': headers,
             'subject': self._get_subject(headers["Subject"]),
             'body': body,
             'markdown': markdown,
-            'simple_markdown': simple_markdown,
         }
 
         self._structure = structure

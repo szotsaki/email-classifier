@@ -25,7 +25,7 @@ class Classifier:
         return self._response
 
     def _run_llm(self, model: Model) -> str | None:
-        if not self._email_structure["simple_markdown"]:
+        if not self._email_structure["markdown"]:
             print("The provided e-mail is empty, the classifier cannot run on it", file=sys.stderr)
             return None
 
@@ -42,7 +42,7 @@ class Classifier:
                                f"{categories}. If unsure, output the string 'unsure' verbatim.\n"
                                "Do not reason and omit the thinking process in the response.\n"
                                "The response must contain only one word: one of the listed categories or 'unsure'."
-                               f"Email content:\n{self._email_structure["subject"]}\n{self._email_structure["simple_markdown"]}",
+                               f"Email content:\n{self._email_structure["subject"]}\n{self._email_structure["markdown"]}",
                 },
             ])
 
