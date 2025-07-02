@@ -48,13 +48,13 @@ class Classifier:
 
             classification = self._response["message"]["content"].strip()
 
-            # Sometimes the answer is long or thinking is there (even though it's disabled).
+            # Sometimes the answer is long or thinking is there (even though it's disabled)
             if "\n" in classification:
                 classification = classification.splitlines()[-1]
 
+            # This regexp catches the last of the category mentions
             categories = "|".join(self._categories)
-            # This catches the last of the mentions
-            classification = re.sub(rf".*({categories}|unsure).*", r"\1", classification)
+            classification = re.sub(f".*({categories}|unsure).*", r"\1", classification.lower())
 
             if classification in self._categories + ['unsure']:
                 return classification
