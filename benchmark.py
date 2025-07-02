@@ -3,9 +3,12 @@ import math
 import os
 import sys
 from datetime import timedelta
+from pathlib import Path
+
+from ollama import ChatResponse
 
 from classifier.Classifier import Classifier
-from classifier.Email import Email
+from classifier.Email import Email, EmailStructure
 from classifier.Model import Model
 
 
@@ -30,6 +33,19 @@ class Benchmark:
                 if not model.pull():
                     print("Could not retrieve all the requested models. Benchmark is now exiting.", file=sys.stderr)
                     exit(1)
+
+    def _write_analysis(self, model: Model, response: ChatResponse, email: EmailStructure, short_subject: str
+                        ) -> None:
+        os.makedirs(self._args.unsure_analysis_dir, exist_ok=True)
+        filename = short_subject.replace("/", "-") + f"-{model.model}.txt"
+        path = f"{self._args.unsure_analysis_dir}/{filename}"
+        with open(Path(path), "w+") as f:
+            print("LLM response:\n", "=" * 30, sep="", file=f)
+            print(response["message"]["content"], "\n", sep="", file=f)
+            print("E-mail subject:\n", "=" * 30, sep="", file=f)
+            print(email["subject"], "\n", sep="", file=f)
+            print("E-mail given to LLM:\n", "=" * 30, sep="", file=f)
+            print(email["markdown"], file=f)
 
     def _process_emails(self) -> None:
         print(f"{"Subject":{self._subj_len + 1}s}", end="")
@@ -56,6 +72,9 @@ class Benchmark:
                             response = classifier.response
                             duration = str(timedelta(seconds=math.ceil(response["total_duration"] / (10 ** 9))))
                             print(f"{classification:13s}{duration:8s}", end="", flush=True)
+
+                            if classification in ["unsure", "unknown"] and self._args.unsure_analysis_dir:
+                                self._write_analysis(model, response, email_structure, short_subject)
                         else:
                             print(f"{"-":13s} {"-":8s}", end="", flush=True)
 
@@ -68,6 +87,9 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--models', nargs='+',
                         help='Models to benchmark. Example: "mistral:7b deepseek-r1:8b". Default: mistral:7b',
                         default=["mistral:7b"])
+    parser.add_argument('--unsure-analysis-dir',
+                        help='Directory to write out the chat response when the answer was "unsure" or "unknown"',
+                        type=str)
     args = parser.parse_args()
 
     Benchmark(args).run()
