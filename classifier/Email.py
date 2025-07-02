@@ -33,7 +33,7 @@ class Email:
     def structure(self) -> EmailStructure | None:
         return self._structure
 
-    def parse(self) -> EmailStructure:
+    def parse(self, markdown_limit=300) -> EmailStructure:
         message = message_from_bytes(self._email)
         headers = dict(message.items())
         body = markdown = ""
@@ -60,7 +60,7 @@ class Email:
 
             markdown = self._html2text(html)
             markdown = re.sub(r"(\s*\n)+", r"\n", markdown)
-            markdown = markdown[:500].strip()
+            markdown = markdown[:markdown_limit].strip()
 
         structure: EmailStructure = {
             'headers': headers,
