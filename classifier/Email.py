@@ -36,6 +36,7 @@ class Email:
     def parse(self, markdown_limit=300) -> EmailStructure:
         message = message_from_bytes(self._email)
         headers = dict(message.items())
+        subject = self._get_subject(headers["Subject"]) if "Subject" in headers else ""
         body = markdown = ""
         if message.is_multipart():
             for part in message.walk():
@@ -64,7 +65,7 @@ class Email:
 
         structure: EmailStructure = {
             'headers': headers,
-            'subject': self._get_subject(headers["Subject"]),
+            'subject': subject,
             'body': body,
             'markdown': markdown,
         }
