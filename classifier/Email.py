@@ -2,6 +2,7 @@ import re
 import unicodedata
 from email import message_from_bytes
 from email.header import decode_header
+from email.message import Message
 from typing import TypedDict
 
 import html2text
@@ -46,11 +47,9 @@ class Email:
                 if content_type not in ["text/plain", "text/html"] or "attachment" in content_disposition:
                     continue
 
-                charset = part.get_param('charset', 'ASCII')
-                body = part.get_payload(decode=True).decode(charset)
+                body = self._get_body(part)
         else:
-            charset = message.get_param('charset', 'ASCII')
-            body = message.get_payload(decode=True).decode(charset)
+            body = self._get_body(message)
 
         if body:
             # Fix broken HTML and remove superfluous Unicode characters
@@ -84,3 +83,8 @@ class Email:
                 subject += part[0].decode(part[1] if part[1] is not None else "utf-8")
 
         return subject.replace("\r\n", "")
+
+    @staticmethod
+    def _get_body(part: Message):
+        charset = part.get_param('charset', 'ASCII')
+        return part.get_payload(decode=True).decode(charset, errors="ignore")
