@@ -65,10 +65,8 @@ This script uses Ollama to locally classify emails in the provided directory.
 
 Usage:
 
-1. Install [Ollama](https://ollama.com/download) and its [Python binding](https://github.com/ollama/ollama-python), then
-   start `ollama.service`.
-2. Export some of your e-mails into a directory (e.g. from Thunderbird) in .eml format (where both the headers and the
-   body are present).
+1. Install [Ollama](https://ollama.com/download) and its [Python binding](https://github.com/ollama/ollama-python), then start `ollama.service`.
+2. Export some of your e-mails into a directory (e.g. from Thunderbird) in .eml format (where both the headers and the body are present).
 3. Run `benchmark.py` with this directory as the argument.
 
 ```text
@@ -86,3 +84,33 @@ options:
   --unsure-analysis-dir UNSURE_ANALYSIS_DIR
                         Directory to write out the chat response when the answer was "unsure" or "unknown"
 ```
+
+## Local benchmark results
+
+Results of a local benchmark of a set of 30 e-mails from various sources. The set included all four types of e-mails (notification, promotion, primary, social).
+
+- Accuracy: _unsure_ and _unknown_ results were mapped to _primary_, as it happens in the code.
+- Precision: these two were not mapped to _primary_, they counted as mismatch.
+- Average runtime: on GPUs the average runtime is around 1-2 seconds, therefore, since most of the target servers don't have powerful GPUs attached to them, the runtime here shows CPU classification time.
+- Total memory: total used memory reported by Ollama. This is not equal to the memory needed to run the model on GPU, that's usually a lot less.
+
+In most of the cases the e-mails were truncated to 300 characters, but in a few cases their length was 500 characters. The former means faster processing with barely visible accuracy loss.
+
+| Model                | E-mail length | Accuracy | Precision | Average runtime | Total memory |
+| -------------------- | ------------- | -------- | --------- | --------------- | ------------ |
+| mistral:7b           | 300 chars     | 67%      | 63%       | 14 sec          | 4.3 GiB      |
+| mistral-small:24b    | 500 chars     | 77%      | 67%       | 42 sec          | 13.6 GiB     |
+| mistral-small:24b    | 300 chars     | 73%      | 63%       | 11 sec          | 13.6 GiB     |
+| mistral-small3.2:24b | 300 chars     | 80%      | 73%       | 11 sec          | 23.8 GiB     |
+| deepseek-r1:1.5b     | 300 chars     | 10%      | 0%        | 2  sec          | 1.0 GiB      |
+| deepseek-r1:7b       | 300 chars     | 47%[^1]  | 47%[^1]   | 13 sec          | 4.3 GiB      |
+| deepseek-r1:8b       | 300 chars     | 47%      | 37%       | 11 sec          | 5.5 GiB      |
+| deepseek-r1:14b      | 300 chars     | 50%      | 37%       | 31 sec          | 8.7 GiB      |
+| deepseek-r1:32b      | 300 chars     | 47%      | 33%       | 22 sec          | 19.1 GiB     |
+
+[^1]: `deepseek-r1:7b` categorised all e-mails as notifications.
+
+Reference machine:
+
+- CPU: AMD Ryzen 7 3700X 8-Core Processor
+- Memory: DDR4 3600 MHz
