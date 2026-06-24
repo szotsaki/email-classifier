@@ -42,7 +42,7 @@ By default, it uses mistral:7b.
 ### Usage
 
 ```text
-usage: classify.py [-h] [-s SOCKET] [--socket-uid SOCKET_UID] [--socket-gid SOCKET_GID] [--max-size MAX_SIZE] [-t TIMEOUT] [-m MODEL]
+usage: classify.py [-h] [-s SOCKET] [--socket-uid SOCKET_UID] [--socket-gid SOCKET_GID] [--socket-mode SOCKET_MODE] [--max-size MAX_SIZE] [-t TIMEOUT] [-m MODEL]
 
 E-mail classifier
 
@@ -53,6 +53,8 @@ options:
                         UID (user id) of the created UNIX socket
   --socket-gid SOCKET_GID
                         GID (group id) of the created UNIX socket
+  --socket-mode SOCKET_MODE
+                        File mode of the created UNIX socket
   --max-size MAX_SIZE   Maximum size (in bytes) of an e-mail to be processed. Default: 30 MiB
   -t, --timeout TIMEOUT
                         Timeout (in seconds) for an e-mail to arrive through the socket. Default: 10 seconds

@@ -15,7 +15,7 @@ class SocketListener:
 
 
 class UnixSocketListener(SocketListener):
-    def __init__(self, socket: str, uid: int | str, gid: int | str, timeout: int, max_email_size: int,
+    def __init__(self, socket: str, uid: int | str, gid: int | str, mode: int, timeout: int, max_email_size: int,
                  processing_callback):
         super().__init__(timeout, max_email_size, processing_callback)
 
@@ -27,6 +27,7 @@ class UnixSocketListener(SocketListener):
         self._socket = socket
         self._uid = uid
         self._gid = gid
+        self._mode = mode
 
         try:
             socket_dir = os.path.dirname(self._socket)
@@ -45,7 +46,8 @@ class UnixSocketListener(SocketListener):
                 try:
                     try:
                         shutil.chown(self._socket, self._uid, self._gid)
-                    except (PermissionError, LookupError, OverflowError) as e:
+                        os.chmod(self._socket, self._mode)
+                    except (PermissionError, LookupError, OverflowError, OSError) as e:
                         print(f'Could not set the permission of the socket "{self._socket}". {e}', file=sys.stderr)
                         exit(1)
 

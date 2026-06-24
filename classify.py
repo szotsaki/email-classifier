@@ -22,6 +22,8 @@ if __name__ == "__main__":
                         default="/run/email-classifier/classify.sock")
     parser.add_argument('--socket-uid', help='UID (user id) of the created UNIX socket', default=-1)
     parser.add_argument('--socket-gid', help='GID (group id) of the created UNIX socket', default=-1)
+    parser.add_argument('--socket-mode', help='File mode of the created UNIX socket', default=0o660,
+                        type=lambda x: int(x, 8))
     parser.add_argument('--max-size', type=int,
                         help='Maximum size (in bytes) of an e-mail to be processed. Default: 30 MiB',
                         default=1024 * 1024 * 30)
@@ -34,6 +36,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     classify_bound = lambda email_content: classify(args, email_content)
-    listener = UnixSocketListener(args.socket, args.socket_uid, args.socket_gid, args.timeout, args.max_size,
+    listener = UnixSocketListener(args.socket, args.socket_uid, args.socket_gid, args.socket_mode, args.timeout,
+                                  args.max_size,
                                   classify_bound)
     listener.listen()
